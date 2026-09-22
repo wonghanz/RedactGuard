@@ -1,0 +1,60 @@
+name: Wrong redaction
+description: A shape that fired, or did not fire, or a region that did not change, that does not look right
+labels: ["reading"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        RedactGuard reports which shapes in a text matched a published table, which
+        metadata tags the file carried, how many pixels under each region actually
+        changed, and what it cannot see at all. It does not report whether a picture
+        is safe to send, and it will not. A "wrong redaction" here means one of four
+        things, all fixable: a shape fired on something innocent, a shape that should
+        have fired did not, a region was written in the wrong place or not at all, or
+        a table line — a tag name, a label word, a street word — is stale or wrong.
+
+        False positives on the auto-applied tier are the most damaging of the four.
+        A shape that eats ordinary prose teaches people to stop reading the list, and
+        the list is the only part of this app that can be audited.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Which kind of wrong
+      options:
+        - A shape fired on innocent text (false positive)
+        - A shape should have fired and did not (miss)
+        - Only-possible fired as though it were firm
+        - A region was misplaced, or the changed-pixel count is not 100
+        - The metadata list is wrong: a tag shown that is not there, or a real one missing
+        - An applied fill still looks recoverable at the setting shown
+      validations:
+        required: true
+  - type: textarea
+    id: input
+    attributes:
+      label: The input, and what the app said
+      description: Redact anything here that you would not want traced to a person — a phone number, an address, an image. Say which pass you were on (photo or text) and, for a picture, roughly what the region covered.
+    validations:
+      required: true
+  - type: textarea
+    id: report
+    attributes:
+      label: The finding list, copied
+      description: The findings card prints each match with its tier, and the text tab prints which shapes did not fire. That is what makes a disagreement traceable to one line of the table.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead, and why
+      description: If you believe a shape, a label word or a tag name is wrong, name the source. Everything the text pass can act on lives in app/src/main/java/dev/capriguard/redactguard/redact/Redactor.kt, and everything the metadata pass looks for lives in redact/ImageAudit.kt.
+    validations:
+      required: false
+  - type: dropdown
+    id: android
+    attributes:
+      label: Android version
+      options: ['11', '12', '13', '14', '15', '16']
+    validations:
+      required: true

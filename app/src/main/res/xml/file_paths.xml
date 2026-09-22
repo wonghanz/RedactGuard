@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Only the folder this app writes its outgoing copy into. Nothing in it is ever
+     readable by another app until a share grants one URI to one receiver. -->
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <cache-path
+        name="redacted"
+        path="out/" />
+</paths>

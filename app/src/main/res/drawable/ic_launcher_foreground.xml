@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A frame with a bar drawn across it and four mosaic squares where a face was:
+     the two ways this app removes something — overwrite it, or break it into
+     blocks too coarse to read. The bar is filled rather than outlined because the
+     point of the gesture is that the pixels underneath are gone, not ringed.
+     Vector paths only, one colour, so the adaptive monochrome layer can reuse the
+     same drawable. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- the picture -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#4FE0E4"
+        android:strokeWidth="3.1"
+        android:strokeAlpha="0.85"
+        android:pathData="M36,28 L72,28 Q84,28 84,40 L84,68 Q84,80 72,80 L36,80 Q24,80 24,68 L24,40 Q24,28 36,28 Z" />
+
+    <!-- what is left of the scene once you stop looking at it -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#4FE0E4"
+        android:strokeWidth="2.4"
+        android:strokeLineCap="round"
+        android:strokeAlpha="0.45"
+        android:pathData="M31,58 L45,42 L55,53 L63,45 L77,57" />
+
+    <!-- the solid fill -->
+    <path
+        android:fillColor="#4FE0E4"
+        android:pathData="M31,64 H71 V73 H31 Z" />
+
+    <!-- the mosaic: four cells, the same block repeated -->
+    <path
+        android:fillColor="#4FE0E4"
+        android:fillAlpha="0.55"
+        android:pathData="M57,33 h6 v6 h-6 Z" />
+    <path
+        android:fillColor="#4FE0E4"
+        android:fillAlpha="0.55"
+        android:pathData="M65,33 h6 v6 h-6 Z" />
+    <path
+        android:fillColor="#4FE0E4"
+        android:fillAlpha="0.35"
+        android:pathData="M57,41 h6 v6 h-6 Z" />
+    <path
+        android:fillColor="#4FE0E4"
+        android:fillAlpha="0.35"
+        android:pathData="M65,41 h6 v6 h-6 Z" />
+</vector>

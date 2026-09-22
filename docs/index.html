@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>RedactGuard — offline photo and text redaction for Android: destroy the pixels and the EXIF before you send</title>
+<meta name="description" content="RedactGuard is a free, MIT-licensed Android app that redacts a photo or a block of text entirely on the device before you send it. It writes new pixels into the image instead of drawing a layer on top, then samples each region before and after and prints how many pixels actually changed; it re-encodes the file as a fresh JPEG so the EXIF is gone with the container rather than scrubbed tag by tag, lists the 27 metadata tags it looked for by name with their values, and re-reads its own output to report how many survived. Fourteen published text shapes catch emails, MyKad numbers, IBANs, card numbers with a Luhn check, coordinates, MAC addresses, links carrying a login and API keys, and the ones that also fit ordinary prose start switched off. No storage or camera permission, no upload, no account, no bundled key, no face detector, no percentage of safety; it works in airplane mode.">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Canonical is where this file is intended to live. GitHub Pages is not enabled on
+     this repository yet, so until it is, this URL resolves nowhere. Deliberately no
+     og:image: there is no banner asset in the repo, and declaring one that 404s is
+     worse than declaring none. -->
+<link rel="canonical" href="https://wonghanz.github.io/RedactGuard/">
+<meta name="theme-color" content="#07161A">
+<meta name="keywords" content="redact photo android offline, image redaction app android, remove exif metadata android, remove gps from photo android, blur face before sharing photo, solid fill vs mosaic redaction, black box redaction not safe, redact screenshot before sending, remove metadata from photo without uploading, pii removal from text, redact email address phone number text, mykad redaction, redact pdf vs redact image, open source redaction android, pixel destructive redaction, anonimize photo android">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RedactGuard">
+<meta property="og:title" content="RedactGuard — the pixels under a black box are still in the file">
+<meta property="og:description" content="Redact a photo or a message on your own phone: fills written into the pixels, a before/after count of what actually changed, a re-encode that takes the EXIF with it, and fourteen published text shapes. Nothing uploads, and no percentage of safety is ever printed.">
+<meta property="og:url" content="https://wonghanz.github.io/RedactGuard/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="RedactGuard — offline photo and text redaction for Android">
+<meta name="twitter:description" content="It removes what you point at and reports what it removed. No detector, no layer, no upload, no claim that the result is safe.">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "RedactGuard",
+  "applicationCategory": "SecurityApplication",
+  "operatingSystem": "Android 8.0 and newer",
+  "description": "Open-source Android app that redacts a photograph or a block of text on the device before it is shared. Fills are written into the copied pixels rather than layered on top, and each region is sampled before and after so the app can print how many of its pixels actually changed. Metadata is removed by re-encoding a fresh JPEG, which drops the EXIF container entirely instead of scrubbing one tag at a time; 27 watched tag names are read by name with their values, and the encoder's own output is re-read to report how many survived. Fourteen published regular expressions catch emails, phone numbers, Malaysian identity numbers with a birth-date check, Luhn-valid card numbers, IBANs, coordinates, MAC addresses, links containing a login and API-key-shaped tokens, with a stated confidence per shape and the noisy shapes left switched off. There is no face detection, no automatic redaction of any kind, no OCR, no permission requested, no upload, no history, no bundled API key, and no percentage or safety verdict is ever produced.",
+  "url": "https://wonghanz.github.io/RedactGuard/",
+  "codeRepository": "https://github.com/wonghanz/RedactGuard",
+  "programmingLanguage": ["Kotlin", "Jetpack Compose"],
+  "softwareVersion": "0.1.0",
+  "datePublished": "2026-09-22",
+  "isAccessibleForFree": true,
+  "license": "https://opensource.org/licenses/MIT",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "featureList": [
+    "pixel-destructive solid fill and block mosaic, drawn by hand over the part that must go",
+    "a before/after sample of every region, printing how many of its pixels really changed",
+    "a re-encode that removes the EXIF container rather than scrubbing tags one by one",
+    "27 watched metadata tags listed by name with the values the file carried",
+    "the output bytes re-read and the surviving tag count printed, including when it is not zero",
+    "fourteen published text shapes with stated confidence; the ambiguous ones start switched off",
+    "no storage, camera, media or location permission, and no runtime prompt of any kind",
+    "no history, no queue, no gallery index, no analytics; the working copy is deleted after decoding",
+    "an optional second read that sends only what the local pass failed to remove, to your own endpoint"
+  ],
+  "softwareRequirements": ["Android 8.0 (API 26) or newer"],
+  "publisher": { "@type": "Person", "name": "wonghanz", "url": "https://github.com/wonghanz" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Does drawing a black rectangle over a photo actually redact it?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Not if the rectangle is a layer, which is how most markup tools work. The original pixels stay in the file underneath, and recovering them is a matter of removing the overlay or reading the format's own structure. A redaction has to replace the pixels, which is the only thing RedactGuard's apply step does, and the app then samples the region before and after and prints how many of its pixels differ." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I remove GPS location and EXIF data from a photo on Android without uploading it?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Pick the photo in RedactGuard, read the list of tags it admits, then Save or Share the redacted copy. The output is a fresh JPEG encoding, so the metadata is gone with its container rather than scrubbed field by field. The app re-reads the bytes it produced and prints how many of its 27 watched tags survived, which is normally zero and which it reports even when it is not. Nothing is uploaded and no permission is requested." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is a mosaic blur safer than a black box?",
+      "acceptedAnswer": { "@type": "Answer", "text": "It depends entirely on the block size, and a mosaic that leaves silhouettes is closer to a black box drawn as a layer than to a removal. RedactGuard prints which strength you are on and states plainly that a fine block size can leave text legible and faces recognisable. A solid fill is the only option in the app that removes the information instead of hiding it." }
+    },
+    {
+      "@type": "Question",
+      "name": "Can RedactGuard detect faces or numbers automatically?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No, and there is no switch for it. An automatic detector is wrong in both directions, and a confident nothing-here-is-in-this-image is the most harmful thing a redaction tool can say, because it is the one mistake you cannot undo after you press send. You point; it destroys." }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I undo a redaction after applying it?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Not inside the copy the app holds, which is the point of applying. The new pixels are written into the working image and there is no hidden original to reveal. Your gallery file is never edited, so the real undo is to start again from it." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does the app mark some matches only possible?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Because those shapes also fit ordinary things. A run of seven to fourteen digits is a phone number about as often as it is an order reference, and a dotted quad is an address as often as it is a version number. Anything in that tier is shown and left switched off, because a tool that guesses at what identifies you trains you to stop reading its list." }
+    },
+    {
+      "@type": "Question",
+      "name": "Does it redact text inside a screenshot?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Not by itself. There is no OCR in this app, so a screenshot of a chat keeps every name in its pixels until you box them. The text tab works on text you paste or share; the photo tab works on whatever is visible. The two are separate on purpose, because a tool that claimed to read what it cannot see would be lying about the one thing that matters." }
+    },
+    {
+      "@type": "Question",
+      "name": "Can it redact a PDF or a Word document?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. Redacting a document properly means rebuilding it, because text sits in objects with their own fonts, layers and structure, and a rectangle drawn on top of a PDF page is the least reliable kind of hiding there is. RedactGuard works on one image and one block of text at a time, on a phone." }
+    },
+    {
+      "@type": "Question",
+      "name": "Does the app need an account, a key or a network connection?",
+      "acceptedAnswer": { "@type": "Answer", "text": "None of the three. The pixel pass, the region check and the metadata pass are pure Kotlin over the bytes you picked, and the app works in airplane mode. A base URL, model name and key only unlock an optional second read, which sends what the local pass already failed to remove: redacted text with its values replaced, or an image with its regions filled. The build ships without a key and without anyone else's quota." }
+    },
+    {
+      "@type": "Question",
+      "name": "What does it do with the photo while it works?",
+      "acceptedAnswer": { "@type": "Answer", "text": "It copies the picked image into its own cache once, because a shared content stream cannot reliably be opened twice, then deletes that copy the moment decoding finishes. The original is never modified, re-saved or deleted. Nothing is written to storage unless you press Save or Share, and there is no history screen, thumbnail database or gallery index for a half-finished redaction to appear in." }
+    },
+    {
+      "@type": "Question",
+      "name": "Will RedactGuard make my photo anonymous?",
+      "acceptedAnswer": { "@type": "Answer", "text": "It cannot promise that, and it never says the words. A person who already knows you can recognise a routine, a view, a doorway or a sentence, none of which is a format a pattern can catch. What the app does is narrower and checkable: it removes the regions you point at, drops the metadata its re-encode takes with it, and tells you exactly what it removed." }
+    }
+  ]
+}
+</script>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+         background: #07161A; color: #F2F8F9; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 64px 22px 80px; }
+  h1 { font-size: clamp(29px, 5.6vw, 41px); line-height: 1.16; letter-spacing: -0.02em; margin: 0 0 10px; }
+  .lede { font-size: 19px; color: #9FB6BB; margin: 0 0 30px; }
+  .mark { display: inline-block; width: 34px; height: 26px; border-radius: 7px;
+          border: 2.4px solid #4FE0E4; position: relative; margin-bottom: 20px; }
+  .mark::after { content: ""; position: absolute; left: 4px; bottom: 5px; width: 21px; height: 6px;
+                 background: #4FE0E4; }
+  .mark::before { content: ""; position: absolute; right: 4px; top: 4px; width: 6px; height: 6px;
+                  background: #4FE0E4; opacity: .45;
+                  box-shadow: 8px 0 0 #4FE0E4, 0 8px 0 #4FE0E4, 8px 8px 0 #4FE0E4; }
+  .cta { display: inline-block; background: #0B6C72; color: #fff; text-decoration: none;
+         padding: 13px 24px; border-radius: 999px; font-weight: 600; margin: 0 10px 14px 0; }
+  .cta.alt { background: transparent; border: 1px solid #2A4B53; color: #F2F8F9; }
+  h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .1em; color: #4FE0E4;
+       margin: 46px 0 14px; }
+  h3 { font-size: 17px; margin: 28px 0 8px; }
+  ul { padding-left: 20px; margin: 0; }
+  li { margin-bottom: 9px; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th, td { text-align: left; padding: 9px 0; border-bottom: 1px solid #163137; vertical-align: top; }
+  th { color: #9FB6BB; font-weight: 500; }
+  td.n { text-align: right; font-variant-numeric: tabular-nums; color: #4FE0E4; white-space: nowrap; }
+  .note { background: #10262B; border: 1px solid #1A353C; border-radius: 18px; padding: 18px 20px; margin-top: 26px; }
+  .note strong { color: #E8A33D; }
+  code, pre { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; }
+  pre { background: #10262B; border: 1px solid #1A353C; border-radius: 14px; padding: 16px; overflow: auto; }
+  footer { margin-top: 54px; font-size: 14px; color: #9FB6BB; }
+  a { color: #4FE0E4; }
+  .q { font-weight: 600; margin: 22px 0 4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="mark" aria-hidden="true"></span>
+  <h1>RedactGuard — redact a photo or a message on your Android, offline, before it leaves the phone</h1>
+  <p class="lede">An open source app that destroys the pixels you point at instead of covering them,
+  throws the file's metadata away by re-encoding the picture rather than scrubbing it tag by tag, and
+  then shows you what it removed. It does not tell you the result is safe to send, because nobody can.</p>
+
+  <p>
+    <a class="cta" href="https://github.com/wonghanz/RedactGuard">Source on GitHub</a>
+    <a class="cta alt" href="https://github.com/wonghanz/RedactGuard/blob/main/README.md">Every shape and tag it checks</a>
+  </p>
+
+  <h2>The trap, in one line</h2>
+  <table>
+    <tr><th>What you think you sent</th><th>What the file still holds</th><th class="n">Recoverable</th></tr>
+    <tr><td>a screenshot with a white box drawn over the address</td><td>the address, under the box, in the PNG's own layers</td><td class="n">yes</td></tr>
+    <tr><td>a photo with the plate "blurred" at a fine strength</td><td>enough edges to read the plate in good light</td><td class="n">often</td></tr>
+    <tr><td>the same photo, address blanked in the app above</td><td>nothing: new pixels were written, and the file was re-encoded</td><td class="n">no</td></tr>
+  </table>
+  <p>The difference between the first two rows and the third is whether the information was hidden or
+  replaced. Everything else about redaction tools — the ones that ship a "one-click" PDF redaction, the
+  ones that print a confidence percentage — follows from getting that distinction wrong.</p>
+
+  <h2>What runs on the device</h2>
+  <ul>
+    <li><strong>Two fills.</strong> Solid writes a flat colour into the region; mosaic downsamples it and
+      draws the small bitmap back with filtering off, which is what leaves the squares. Both write into the
+      copy this app holds, not onto it.</li>
+    <li><strong>A proof.</strong> Each region's pixels are sampled before the fill and again after, so the
+      app prints the share that actually changed instead of asserting it. A rectangle that missed the image
+      shows up as a number.</li>
+    <li><strong>A metadata reading.</strong> 27 watched tag names are read one by one and listed with their
+      values — position, fix time, device make and model, lens, ISO, the shooting clock and the UTC offset,
+      artist, copyright, comments, and the offset and length of an embedded thumbnail of the picture.</li>
+    <li><strong>A re-encode.</strong> The output is a new JPEG from pixels the app already owns, so the EXIF
+      container is gone rather than emptied. The produced bytes are read back and the surviving count is
+      printed, including the case where it is not zero.</li>
+    <li><strong>Fourteen text shapes.</strong> Tried in a fixed order, each with a stated confidence, with
+      two of them carrying a sanity check rather than a wider net: a card number must pass Luhn, and a
+      twelve-digit Malaysian identity number must begin with a date that could have happened.</li>
+  </ul>
+
+  <h2>The shapes, by what they are sure of</h2>
+  <table>
+    <tr><th>Applied on its own</th><th>Why it can be sure</th><th class="n">Needs your tap</th></tr>
+    <tr><td>Labelled identifier</td><td>the value is named by whoever typed it — <code>NRIC:</code>, <code>OTP</code>, <code>API key</code></td><td class="n">—</td></tr>
+    <tr><td>Link with a login inside it</td><td><code>scheme://user:pass@</code> is not a shape prose takes</td><td class="n">—</td></tr>
+    <tr><td>API key or bearer token</td><td>vendor prefixes, and nothing says which vendor it belongs to</td><td class="n">—</td></tr>
+    <tr><td>Email address</td><td>it is also the mailbox to answer as</td><td class="n">—</td></tr>
+    <tr><td>Malaysian identity number</td><td>six digits that have to be a real birth date</td><td class="n">—</td></tr>
+    <tr><td>Card number</td><td>13–19 digits with a check digit that has to add up</td><td class="n">—</td></tr>
+    <tr><td>IBAN · coordinates · MAC address · phone number</td><td>formats with structure ordinary writing does not have</td><td class="n">—</td></tr>
+    <tr><td>Street address</td><td><code>Jalan</code>, <code>Lorong</code>, <code>Road</code>, <code>Avenue</code> — a place you can be walked to</td><td class="n">yes</td></tr>
+    <tr><td>Account handle</td><td><code>@name</code>, an identity carried across platforms</td><td class="n">yes</td></tr>
+    <tr><td>Long digit run</td><td>account, order, reference or ID — the app cannot tell which</td><td class="n">yes</td></tr>
+    <tr><td>IPv4 address</td><td>each octet checked to 255, version numbers still fit</td><td class="n">yes</td></tr>
+  </table>
+  <p>Everything the app did <em>not</em> match is printed too, next to the list. That column is the
+  honest part of the screen: an empty finding list means fourteen patterns did not fire, not that a
+  reader cannot work out who you are.</p>
+
+  <h2>What it will not say</h2>
+  <ul>
+    <li>That a picture or a message is safe to send. No match is not evidence of no match.</li>
+    <li>That a mosaic is unrecoverable. It prints which block size you are on and says when that setting is
+      too weak to hide what it looks like it hides.</li>
+    <li>A percentage describing how anonymous a result is. There is no denominator for that number.</li>
+    <li>What lies under a filled region. Nothing can, which is the entire point.</li>
+    <li>That its optional model pass is complete. It sees only what the local shapes failed to remove.</li>
+  </ul>
+
+  <h2>Permissions, stated</h2>
+  <p>None are requested. The picture comes in through the photo picker or the share sheet; saving goes
+  through the system's create-document sheet; sharing hands over a single <code>FileProvider</code> URI that
+  expires with the recipient. The picked file is copied into the app's cache once — a shared content stream
+  cannot reliably be opened twice — and that copy is deleted as soon as it has been decoded. The original in
+  your gallery is never modified, re-saved or deleted, and there is no history screen, queue, thumbnail
+  database or gallery index for a half-finished redaction to appear in. With Android's backup flag set off,
+  nothing in private storage rides out into a cloud backup or an <code>adb backup</code>.</p>
+
+  <div class="note">
+    <p style="margin:0 0 8px"><strong>And the limit worth remembering.</strong> A redaction that only
+    touches pixels cannot remove what a reader already knows. A name, a job title, a relationship, a
+    routine, a doorway, a view — none of those are formats, so none of them are catchable by a pattern,
+    and a tool that printed an all-clear on them would be the dangerous version of this app.</p>
+    <p style="margin:0"><strong>The other limit:</strong> transparency is flattened onto white and HEIF
+    decodes only where Android ships a decoder, because the output is always a re-encoded JPEG. Both are
+    printed in the README rather than discovered at the moment you needed them.</p>
+  </div>
+
+  <h2>Build and run it</h2>
+  <pre>git clone https://github.com/wonghanz/RedactGuard
+cd RedactGuard
+export ANDROID_HOME=/path/to/Android/sdk
+./gradlew --no-daemon assembleDebug
+# → app/build/outputs/apk/debug/app-debug.apk</pre>
+  <p>No credential is in the repository, no service of ours is involved in the build, and the local
+  passes need no configuration of any kind.</p>
+
+  <h2>Frequently asked</h2>
+  <p class="q">Does drawing a black rectangle over a photo actually redact it?</p>
+  <p>Not if the rectangle is a layer — the original pixels stay underneath. A redaction has to replace
+  pixels, which is the only thing this app's apply step does, and it then measures how many changed.</p>
+
+  <p class="q">How do I strip GPS and EXIF from a photo on Android without uploading it?</p>
+  <p>Pick the photo, read the tags it admits, then Save or Share the redacted copy. Saving writes a fresh
+  JPEG, so the metadata leaves with its container; the app re-reads the output and prints how many watched
+  tags survived.</p>
+
+  <p class="q">Is mosaic better than a black box?</p>
+  <p>Only at a coarse block size, and the app tells you which one you are on. Solid fill is the only option
+  here that removes information instead of hiding it.</p>
+
+  <p class="q">Does it detect faces automatically?</p>
+  <p>No, and there is no switch for it. A wrong "nothing here" is the one mistake you cannot undo after
+  you press send, so the app leaves pointing at pointing.</p>
+
+  <p class="q">Can I undo a redaction?</p>
+  <p>Not inside the copy the app made — there is no hidden original to reveal. Your gallery file is
+  untouched, so start again from that.</p>
+
+  <p class="q">Does it redact text inside a screenshot, or a PDF?</p>
+  <p>Neither. There is no OCR, so visible text stays visible until you box it, and a PDF would have to be
+  rebuilt to be redacted honestly. One image or one block of text, on a phone.</p>
+
+  <p class="q">Do I need an account or an API key?</p>
+  <p>No. Everything above runs in airplane mode. A key you type yourself only unlocks a second read of
+  what the local pass failed to remove.</p>
+
+  <h2>Also in the CapriGuard set</h2>
+  <p>Five siblings, same rule that a check is worth nothing unless you can audit it:
+  <a href="https://github.com/wonghanz/VerifyGuard">VerifyGuard</a> reads what a photo admits about its
+  own making and refuses to call it real or fake;
+  <a href="https://github.com/wonghanz/ScamGuard">ScamGuard</a> reads a message and its links without
+  opening them; <a href="https://github.com/wonghanz/LeakGuard">LeakGuard</a>,
+  <a href="https://github.com/wonghanz/PasswordGuard">PasswordGuard</a>,
+  <a href="https://github.com/wonghanz/DigestGuard">DigestGuard</a> and
+  <a href="https://github.com/wonghanz/LabelGuard">LabelGuard</a> do the same kind of job on breaches,
+  credentials, long articles and food labels.</p>
+
+  <footer>
+    MIT licensed · no analytics, no ads, no tracking ·
+    <a href="https://github.com/wonghanz/RedactGuard">source</a> ·
+    <a href="https://github.com/wonghanz/RedactGuard/security/advisories">report a problem privately</a>
+  </footer>
+</div>
+</body>
+</html>

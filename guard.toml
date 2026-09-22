@@ -1,0 +1,8 @@
+[app]
+name = "RedactGuard"
+slug = "redactguard"
+package = "dev.capriguard.redactguard"
+title = "RedactGuard"
+tagline = "Burn in the pixels that identify you before a photo or a text leaves the phone."
+generatedFrom = "guard-foundry/scaffold"
+generatedAt = "2026-09-22T13:39:21.869Z"
